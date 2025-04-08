@@ -38,6 +38,7 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
+                <!-- Amount -->
                 <EditText
                     android:id="@+id/amountInput"
                     android:layout_width="match_parent"
@@ -50,11 +51,12 @@
                     android:layout_marginBottom="16dp"
                     android:background="@android:drawable/editbox_background" />
 
-                <EditText
+                <!-- Merchant -->
+                <AutoCompleteTextView
                     android:id="@+id/merchantInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Enter Merchant Name"
+                    android:hint="Enter or select merchant"
                     android:inputType="text"
                     android:padding="14dp"
                     android:textColor="#000000"
@@ -62,6 +64,20 @@
                     android:layout_marginBottom="16dp"
                     android:background="@android:drawable/editbox_background" />
 
+                <!-- Description (Optional) -->
+                <EditText
+                    android:id="@+id/descriptionInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Description"
+                    android:inputType="text"
+                    android:padding="14dp"
+                    android:textColor="#000000"
+                    android:textColorHint="#555555"
+                    android:layout_marginBottom="16dp"
+                    android:background="@android:drawable/editbox_background" />
+
+                <!-- Predict Button -->
                 <Button
                     android:id="@+id/predictButton"
                     android:layout_width="match_parent"
@@ -71,6 +87,7 @@
                     android:textColor="#FFFFFF"
                     android:layout_marginBottom="16dp" />
 
+                <!-- Predicted Category -->
                 <TextView
                     android:id="@+id/predictedCategoryLabel"
                     android:layout_width="wrap_content"
@@ -80,11 +97,13 @@
                     android:textColor="#000000"
                     android:layout_marginBottom="8dp" />
 
+                <!-- Category Spinner -->
                 <Spinner
                     android:id="@+id/categorySpinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/spinner_border" />
+                    android:background="@android:drawable/editbox_background" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
