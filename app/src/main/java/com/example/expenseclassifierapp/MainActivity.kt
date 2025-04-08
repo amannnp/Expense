@@ -1,4 +1,5 @@
 package com.example.expenseclassifierapp
+import com.google.firebase.firestore.FirebaseFirestore
 
 import android.os.Bundle
 import android.util.Log
