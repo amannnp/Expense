@@ -1,15 +1,12 @@
 package com.example.expenseclassifierapp
 
-
 import android.content.Context
 import org.tensorflow.lite.Interpreter
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.*
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
-import kotlin.math.min
 
 class Classifier(private val context: Context) {
 
@@ -21,8 +18,7 @@ class Classifier(private val context: Context) {
         private const val MODEL_FILE = "expense_model.tflite"
         private const val VOCAB_FILE = "tfidf_vocab.json"
         private const val LABELS_FILE = "label_classes.json"
-        private const val MAX_VOCAB_SIZE = 5000
-        private const val TEXT_VECTOR_LENGTH = 70 // must match your model input
+        private const val TEXT_VECTOR_LENGTH = 70 // Must match model input
     }
 
     init {
@@ -41,6 +37,10 @@ class Classifier(private val context: Context) {
         interpreter.runForMultipleInputsOutputs(inputs, mapOf(0 to output))
         val predictionIndex = output[0].indices.maxByOrNull { output[0][it] } ?: -1
         return labels[predictionIndex]
+    }
+
+    fun getLabels(): List<String> {
+        return labels
     }
 
     private fun textToTfidfVector(text: String): Array<FloatArray> {
@@ -81,10 +81,10 @@ class Classifier(private val context: Context) {
 
     private fun loadLabels(filename: String): List<String> {
         val jsonString = context.assets.open(filename).bufferedReader().use { it.readText() }
-        val jsonObject = JSONObject(jsonString)
+        val jsonArray = JSONArray(jsonString)
         val list = mutableListOf<String>()
-        for (i in 0 until jsonObject.length()) {
-            list.add(jsonObject.getString(i.toString()))
+        for (i in 0 until jsonArray.length()) {
+            list.add(jsonArray.getString(i))
         }
         return list
     }
