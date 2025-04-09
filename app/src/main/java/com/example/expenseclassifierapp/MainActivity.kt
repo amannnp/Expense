@@ -1,4 +1,5 @@
 package com.example.expenseclassifierapp
+import Expense
 
 import android.content.Intent
 import android.os.Bundle
@@ -79,6 +80,31 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
+
+        // Load existing expenses when app starts
+        loadExpenses()
+    }
+
+    private fun loadExpenses() {
+        val userId = auth.currentUser?.uid ?: return
+
+        FirebaseFirestore.getInstance().collection("expenses")
+            .whereEqualTo("userId", userId)
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(20) // Limit to recent expenses for performance
+            .get()
+            .addOnSuccessListener { documents ->
+                expenses.clear()
+                for (document in documents) {
+                    val amount = document.getDouble("amount") ?: 0.0
+                    val category = document.getString("category") ?: "Other"
+                    expenses.add(Expense(amount, category))
+                }
+                adapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener { exception ->
+                showToast("Error loading expenses: ${exception.message}")
+            }
     }
 
     private fun handlePrediction() {
@@ -122,6 +148,18 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        // Create the local expense object first
+        val newExpense = Expense(amount, selectedCategory)
+
+        // Add to the local list
+        expenses.add(0, newExpense)
+
+        // Notify adapter IMMEDIATELY - don't wait for Firebase success
+        adapter.notifyDataSetChanged()
+
+        // Scroll to see the new item
+        expenseRecyclerView.scrollToPosition(0)
+
         val expense = hashMapOf(
             "merchant" to merchant,
             "description" to description,
@@ -131,18 +169,17 @@ class MainActivity : AppCompatActivity() {
             "userId" to userId
         )
 
+        // Then save to Firebase
         FirebaseFirestore.getInstance().collection("expenses")
             .add(expense)
             .addOnSuccessListener {
                 showToast("Expense saved to Firebase!")
-                val newExpense = Expense(amount, selectedCategory)
-                expenses.add(0, newExpense) // Add to top
-                adapter.notifyItemInserted(0)
-                expenseRecyclerView.scrollToPosition(0)
-
                 clearInputs()
             }
             .addOnFailureListener { e ->
+                // If Firebase save fails, remove the item from the list
+                expenses.removeAt(0)
+                adapter.notifyDataSetChanged()
                 showToast("Error saving expense: ${e.message}")
             }
     }

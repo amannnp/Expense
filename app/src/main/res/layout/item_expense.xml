@@ -22,7 +22,7 @@
             android:text="Amount"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="?android:textColorPrimary" />
+            android:textColor="?attr/colorOnSurface" />
 
         <TextView
             android:id="@+id/categoryTextView"
@@ -30,6 +30,15 @@
             android:layout_height="wrap_content"
             android:text="Category"
             android:textSize="14sp"
-            android:textColor="?android:textColorSecondary" />
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <TextView
+            android:id="@+id/timestampTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Date:Time"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp"
+            android:textColor="?attr/colorOnSurfaceVariant" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
