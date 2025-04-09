@@ -140,6 +140,8 @@ class MainActivity : AppCompatActivity() {
 
             expenses.add(Expense(amount, selectedCategory))
             adapter.notifyDataSetChanged()
+            expenseRecyclerView.scrollToPosition(expenses.size - 1)
+
 
             // ✅ Clear input fields safely
             amountInput.setText("")
