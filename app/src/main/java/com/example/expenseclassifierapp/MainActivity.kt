@@ -1,6 +1,6 @@
 package com.example.expenseclassifierapp
-import com.google.firebase.firestore.FirebaseFirestore
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -21,10 +23,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var categorySpinner: Spinner
     private lateinit var predictButton: Button
     private lateinit var saveButton: Button
+    private lateinit var logoutButton: Button
     private lateinit var expenseRecyclerView: RecyclerView
     private lateinit var adapter: ExpenseAdapter
 
     private lateinit var classifier: Classifier
+    private lateinit var auth: FirebaseAuth
 
     private val expenses = mutableListOf<Expense>()
     private lateinit var categories: List<String>
@@ -34,19 +38,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        auth = FirebaseAuth.getInstance()
+
         amountInput = findViewById(R.id.amountInput)
         merchantInput = findViewById(R.id.merchantInput)
         descriptionInput = findViewById(R.id.descriptionInput)
         categorySpinner = findViewById(R.id.categorySpinner)
         predictButton = findViewById(R.id.predictButton)
         saveButton = findViewById(R.id.saveButton)
+        logoutButton = findViewById(R.id.logoutButton)
         expenseRecyclerView = findViewById(R.id.expenseRecyclerView)
 
         adapter = ExpenseAdapter(expenses)
         expenseRecyclerView.layoutManager = LinearLayoutManager(this)
         expenseRecyclerView.adapter = adapter
 
-        // Initialize the classifier and load labels
         classifier = Classifier(this)
         categories = classifier.getLabels()
 
@@ -99,24 +105,53 @@ class MainActivity : AppCompatActivity() {
 
             val amountText = amountInput.text.toString()
             val amount = amountText.toDoubleOrNull()
-
             if (amount == null) {
                 showToast("Please enter a valid amount")
                 return@setOnClickListener
             }
 
+            val merchant = merchantInput.text.toString()
+            val description = descriptionInput.text.toString()
             val selectedCategory = categorySpinner.selectedItem.toString()
-            val expense = Expense(amount, selectedCategory)
 
-            expenses.add(expense)
+            val userId = auth.currentUser?.uid
+            if (userId == null) {
+                showToast("User not signed in")
+                return@setOnClickListener
+            }
+
+            val expense = hashMapOf(
+                "merchant" to merchant,
+                "description" to description,
+                "amount" to amount,
+                "category" to selectedCategory,
+                "timestamp" to System.currentTimeMillis(),
+                "userId" to userId
+            )
+
+            FirebaseFirestore.getInstance().collection("expenses")
+                .add(expense)
+                .addOnSuccessListener {
+                    showToast("Expense saved to Firebase!")
+                }
+                .addOnFailureListener { e ->
+                    showToast("Error saving expense: ${e.message}")
+                }
+
+            expenses.add(Expense(amount, selectedCategory))
             adapter.notifyDataSetChanged()
 
-            amountInput.text.clear()
-            merchantInput.text.clear()
-            descriptionInput.text.clear()
+            // ✅ Clear input fields safely
+            amountInput.setText("")
+            merchantInput.setText("")
+            descriptionInput.setText("")
             categorySpinner.setSelection(0)
+        }
 
-            showToast("Expense saved!")
+        logoutButton.setOnClickListener {
+            auth.signOut()
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
         }
     }
 

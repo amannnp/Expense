@@ -3,136 +3,91 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FAFAFA">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal">
+        android:orientation="vertical">
 
-        <!-- Title -->
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Expense Categorizer"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="#1A237E"
-            android:layout_marginBottom="24dp" />
-
-        <!-- Card Container -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- Amount -->
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="6dp"
-            android:layout_marginBottom="24dp"
-            android:backgroundTint="#FFFFFF">
+            android:hint="Amount"
+            android:layout_marginBottom="12dp">
 
-            <LinearLayout
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/amountInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:inputType="numberDecimal" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Amount -->
-                <EditText
-                    android:id="@+id/amountInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Enter Amount"
-                    android:inputType="numberDecimal"
-                    android:padding="14dp"
-                    android:textColor="#000000"
-                    android:textColorHint="#555555"
-                    android:layout_marginBottom="16dp"
-                    android:background="@android:drawable/editbox_background" />
+        <!-- Merchant -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Merchant"
+            android:layout_marginBottom="12dp">
 
-                <!-- Merchant -->
-                <AutoCompleteTextView
-                    android:id="@+id/merchantInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Enter or select merchant"
-                    android:inputType="text"
-                    android:padding="14dp"
-                    android:textColor="#000000"
-                    android:textColorHint="#555555"
-                    android:layout_marginBottom="16dp"
-                    android:background="@android:drawable/editbox_background" />
+            <AutoCompleteTextView
+                android:id="@+id/merchantInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Description (Optional) -->
-                <EditText
-                    android:id="@+id/descriptionInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Enter Description"
-                    android:inputType="text"
-                    android:padding="14dp"
-                    android:textColor="#000000"
-                    android:textColorHint="#555555"
-                    android:layout_marginBottom="16dp"
-                    android:background="@android:drawable/editbox_background" />
+        <!-- Description -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description"
+            android:layout_marginBottom="12dp">
 
-                <!-- Predict Button -->
-                <Button
-                    android:id="@+id/predictButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Predict"
-                    android:backgroundTint="#3949AB"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginBottom="16dp" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/descriptionInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Predicted Category -->
-                <TextView
-                    android:id="@+id/predictedCategoryLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Predicted Category:"
-                    android:textSize="16sp"
-                    android:textColor="#000000"
-                    android:layout_marginBottom="8dp" />
+        <!-- Category Spinner -->
+        <Spinner
+            android:id="@+id/categorySpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" />
 
-                <!-- Category Spinner -->
-                <Spinner
-                    android:id="@+id/categorySpinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@android:drawable/editbox_background" />
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        <!-- Predict Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/predictButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Predict Category"
+            android:layout_marginBottom="12dp" />
 
         <!-- Save Button -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/saveButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save Expense"
-            android:backgroundTint="#6200EE"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="24dp" />
-
-        <!-- Expenses Label -->
-        <TextView
-            android:id="@+id/expensesListLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Expenses:"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
             android:layout_marginBottom="12dp" />
 
-        <!-- RecyclerView -->
+        <!-- Logout Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/logoutButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Logout"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Expenses RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/expenseRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="16dp" />
+
     </LinearLayout>
 </ScrollView>

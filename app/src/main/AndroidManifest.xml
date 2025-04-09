@@ -2,9 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.expenseclassifierapp">
+
     <uses-permission android:name="android.permission.INTERNET" />
-
-
 
     <application
         android:allowBackup="true"
@@ -17,10 +16,11 @@
         android:theme="@style/Theme.ExpenseClassifierApp"
         tools:targetApi="31">
 
+        <!-- LoginActivity is the launcher -->
         <activity
-            android:name="com.example.expenseclassifierapp.MainActivity"
+            android:name="com.example.expenseclassifierapp.LoginActivity"
             android:exported="true"
-            android:label="@string/app_name"
+            android:label="Login"
             android:theme="@style/Theme.ExpenseClassifierApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,5 +28,25 @@
             </intent-filter>
         </activity>
 
+        <!-- RegisterActivity declaration -->
+        <activity
+            android:name="com.example.expenseclassifierapp.RegisterActivity"
+            android:exported="true"
+            android:label="Register"
+            android:theme="@style/Theme.ExpenseClassifierApp" />
+
+        <!-- ForgotPasswordActivity declaration -->
+        <activity
+            android:name="com.example.expenseclassifierapp.ForgotPasswordActivity"
+            android:exported="true"
+            android:label="Reset Password"
+            android:theme="@style/Theme.ExpenseClassifierApp" />
+
+        <!-- MainActivity -->
+        <activity
+            android:name="com.example.expenseclassifierapp.MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.ExpenseClassifierApp" />
     </application>
 </manifest>
