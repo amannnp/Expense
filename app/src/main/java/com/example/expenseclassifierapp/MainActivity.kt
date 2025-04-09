@@ -1,6 +1,5 @@
 package com.example.expenseclassifierapp
-import Expense
-
+import com.example.expenseclassifierapp.Expense
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -11,11 +10,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.google.android.material.textfield.MaterialAutoCompleteTextView
 
 class MainActivity : AppCompatActivity() {
 
@@ -52,7 +52,10 @@ class MainActivity : AppCompatActivity() {
         logoutButton = findViewById(R.id.logoutButton)
         expenseRecyclerView = findViewById(R.id.expenseRecyclerView)
 
-        adapter = ExpenseAdapter(expenses)
+        adapter = ExpenseAdapter(expenses) { expense ->
+            showDeleteConfirmation(expense)
+        }
+
         expenseRecyclerView.layoutManager = LinearLayoutManager(this)
         expenseRecyclerView.adapter = adapter
 
@@ -81,7 +84,6 @@ class MainActivity : AppCompatActivity() {
             finish()
         }
 
-        // Load existing expenses when app starts
         loadExpenses()
     }
 
@@ -91,19 +93,31 @@ class MainActivity : AppCompatActivity() {
         FirebaseFirestore.getInstance().collection("expenses")
             .whereEqualTo("userId", userId)
             .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
-            .limit(20) // Limit to recent expenses for performance
+            .limit(20)
             .get()
             .addOnSuccessListener { documents ->
                 expenses.clear()
-                for (document in documents) {
-                    val amount = document.getDouble("amount") ?: 0.0
-                    val category = document.getString("category") ?: "Other"
-                    expenses.add(Expense(amount, category))
+                for (doc in documents) {
+                    val amount = doc.getDouble("amount") ?: 0.0
+                    val category = doc.getString("category") ?: "Other"
+                    val timestamp = when (val raw = doc["timestamp"]) {
+                        is Timestamp -> raw
+                        is Map<*, *> -> {
+                            val seconds = (raw["_seconds"] as? Number)?.toLong() ?: 0L
+                            val nanos = (raw["_nanoseconds"] as? Number)?.toInt() ?: 0
+                            Timestamp(seconds, nanos)
+                        }
+                        else -> Timestamp.now()
+                    }
+
+
+                    val documentId = doc.id
+                    expenses.add(Expense(amount, category, timestamp, documentId))
                 }
                 adapter.notifyDataSetChanged()
             }
-            .addOnFailureListener { exception ->
-                showToast("Error loading expenses: ${exception.message}")
+            .addOnFailureListener { e ->
+                showToast("Error loading expenses: ${e.message}")
             }
     }
 
@@ -132,56 +146,56 @@ class MainActivity : AppCompatActivity() {
         val selectedCategory = categorySpinner.selectedItem?.toString() ?: "Other"
 
         val amount = amountText.toDoubleOrNull()
-        if (amount == null) {
-            showToast("Please enter a valid amount")
-            return
-        }
+        if (amount == null) return showToast("Please enter a valid amount")
+        if (merchant.isEmpty()) return showToast("Merchant cannot be empty")
 
-        if (merchant.isEmpty()) {
-            showToast("Merchant cannot be empty")
-            return
-        }
+        val userId = auth.currentUser?.uid ?: return showToast("User not signed in")
+        val timestamp = Timestamp.now()
 
-        val userId = auth.currentUser?.uid
-        if (userId == null) {
-            showToast("User not signed in")
-            return
-        }
-
-        // Create the local expense object first
-        val newExpense = Expense(amount, selectedCategory)
-
-        // Add to the local list
-        expenses.add(0, newExpense)
-
-        // Notify adapter IMMEDIATELY - don't wait for Firebase success
-        adapter.notifyDataSetChanged()
-
-        // Scroll to see the new item
-        expenseRecyclerView.scrollToPosition(0)
-
-        val expense = hashMapOf(
+        val expenseMap = hashMapOf(
             "merchant" to merchant,
             "description" to description,
             "amount" to amount,
             "category" to selectedCategory,
-            "timestamp" to System.currentTimeMillis(),
+            "timestamp" to timestamp,
             "userId" to userId
         )
 
-        // Then save to Firebase
         FirebaseFirestore.getInstance().collection("expenses")
-            .add(expense)
-            .addOnSuccessListener {
-                showToast("Expense saved to Firebase!")
+            .add(expenseMap)
+            .addOnSuccessListener { doc ->
+                val newExpense = Expense(amount, selectedCategory, timestamp, doc.id)
+                expenses.add(0, newExpense)
+                adapter.notifyItemInserted(0)
+                expenseRecyclerView.scrollToPosition(0)
                 clearInputs()
+                showToast("Expense saved!")
             }
-            .addOnFailureListener { e ->
-                // If Firebase save fails, remove the item from the list
-                expenses.removeAt(0)
-                adapter.notifyDataSetChanged()
-                showToast("Error saving expense: ${e.message}")
+            .addOnFailureListener {
+                showToast("Error saving expense: ${it.message}")
             }
+    }
+
+    private fun deleteExpense(expense: Expense) {
+        FirebaseFirestore.getInstance().collection("expenses").document(expense.documentId)
+            .delete()
+            .addOnSuccessListener {
+                adapter.removeExpense(expense)
+                showToast("Expense deleted")
+            }
+            .addOnFailureListener {
+                showToast("Failed to delete expense: ${it.message}")
+            }
+    }
+
+    private fun showDeleteConfirmation(expense: Expense) {
+        val dialog = android.app.AlertDialog.Builder(this)
+            .setTitle("Delete Expense")
+            .setMessage("Are you sure you want to delete this expense?")
+            .setPositiveButton("Yes") { _, _ -> deleteExpense(expense) }
+            .setNegativeButton("No", null)
+            .create()
+        dialog.show()
     }
 
     private fun setupMerchantDropdown() {
