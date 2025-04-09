@@ -14,11 +14,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var amountInput: EditText
-    private lateinit var merchantInput: AutoCompleteTextView
+    private lateinit var merchantInput: MaterialAutoCompleteTextView
     private lateinit var descriptionInput: EditText
     private lateinit var categorySpinner: Spinner
     private lateinit var predictButton: Button
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
+        // Bind views
         amountInput = findViewById(R.id.amountInput)
         merchantInput = findViewById(R.id.merchantInput)
         descriptionInput = findViewById(R.id.descriptionInput)
@@ -60,100 +62,98 @@ class MainActivity : AppCompatActivity() {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         categorySpinner.adapter = spinnerAdapter
 
-        val merchants = loadMerchantsFromAssets()
-        val merchantAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, merchants)
-        merchantInput.setAdapter(merchantAdapter)
-        merchantInput.threshold = 1
-        merchantInput.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) merchantInput.showDropDown()
-        }
+        setupMerchantDropdown()
 
         predictButton.setOnClickListener {
             hideKeyboard()
-
-            val amountText = amountInput.text.toString()
-            val merchantName = merchantInput.text.toString()
-            val description = descriptionInput.text.toString()
-
-            if (amountText.isBlank()) {
-                showToast("Enter an amount")
-                return@setOnClickListener
-            }
-
-            if (merchantName.isBlank()) {
-                showToast("Enter or select a merchant")
-                return@setOnClickListener
-            }
-
-            val amount = amountText.toFloatOrNull()
-            if (amount == null) {
-                showToast("Invalid amount format")
-                return@setOnClickListener
-            }
-
-            val inputText = "$merchantName $description"
-            val predictedCategory = classifier.classify(inputText, amount)
-
-            val index = categories.indexOf(predictedCategory).takeIf { it >= 0 } ?: 0
-            categorySpinner.setSelection(index)
-
-            showToast("Predicted: $predictedCategory")
+            handlePrediction()
         }
 
         saveButton.setOnClickListener {
             hideKeyboard()
-
-            val amountText = amountInput.text.toString()
-            val amount = amountText.toDoubleOrNull()
-            if (amount == null) {
-                showToast("Please enter a valid amount")
-                return@setOnClickListener
-            }
-
-            val merchant = merchantInput.text.toString()
-            val description = descriptionInput.text.toString()
-            val selectedCategory = categorySpinner.selectedItem.toString()
-
-            val userId = auth.currentUser?.uid
-            if (userId == null) {
-                showToast("User not signed in")
-                return@setOnClickListener
-            }
-
-            val expense = hashMapOf(
-                "merchant" to merchant,
-                "description" to description,
-                "amount" to amount,
-                "category" to selectedCategory,
-                "timestamp" to System.currentTimeMillis(),
-                "userId" to userId
-            )
-
-            FirebaseFirestore.getInstance().collection("expenses")
-                .add(expense)
-                .addOnSuccessListener {
-                    showToast("Expense saved to Firebase!")
-                }
-                .addOnFailureListener { e ->
-                    showToast("Error saving expense: ${e.message}")
-                }
-
-            expenses.add(Expense(amount, selectedCategory))
-            adapter.notifyDataSetChanged()
-            expenseRecyclerView.scrollToPosition(expenses.size - 1)
-
-
-            // ✅ Clear input fields safely
-            amountInput.setText("")
-            merchantInput.setText("")
-            descriptionInput.setText("")
-            categorySpinner.setSelection(0)
+            handleSave()
         }
 
         logoutButton.setOnClickListener {
             auth.signOut()
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
+        }
+    }
+
+    private fun handlePrediction() {
+        val amountText = amountInput.text.toString().trim()
+        val merchantName = merchantInput.text.toString().trim()
+        val description = descriptionInput.text.toString().trim()
+
+        if (amountText.isBlank()) return showToast("Enter an amount")
+        if (merchantName.isBlank()) return showToast("Enter or select a merchant")
+
+        val amount = amountText.toFloatOrNull()
+        if (amount == null) return showToast("Invalid amount format")
+
+        val inputText = "$merchantName $description"
+        val predictedCategory = classifier.classify(inputText, amount)
+        val index = categories.indexOf(predictedCategory).takeIf { it >= 0 } ?: 0
+        categorySpinner.setSelection(index)
+        showToast("Predicted: $predictedCategory")
+    }
+
+    private fun handleSave() {
+        val amountText = amountInput.text.toString().trim()
+        val merchant = merchantInput.text.toString().trim()
+        val description = descriptionInput.text.toString().trim()
+        val selectedCategory = categorySpinner.selectedItem?.toString() ?: "Other"
+
+        val amount = amountText.toDoubleOrNull()
+        if (amount == null) {
+            showToast("Please enter a valid amount")
+            return
+        }
+
+        if (merchant.isEmpty()) {
+            showToast("Merchant cannot be empty")
+            return
+        }
+
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            showToast("User not signed in")
+            return
+        }
+
+        val expense = hashMapOf(
+            "merchant" to merchant,
+            "description" to description,
+            "amount" to amount,
+            "category" to selectedCategory,
+            "timestamp" to System.currentTimeMillis(),
+            "userId" to userId
+        )
+
+        FirebaseFirestore.getInstance().collection("expenses")
+            .add(expense)
+            .addOnSuccessListener {
+                showToast("Expense saved to Firebase!")
+                val newExpense = Expense(amount, selectedCategory)
+                expenses.add(0, newExpense) // Add to top
+                adapter.notifyItemInserted(0)
+                expenseRecyclerView.scrollToPosition(0)
+
+                clearInputs()
+            }
+            .addOnFailureListener { e ->
+                showToast("Error saving expense: ${e.message}")
+            }
+    }
+
+    private fun setupMerchantDropdown() {
+        val merchants = loadMerchantsFromAssets()
+        val merchantAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, merchants)
+        merchantInput.setAdapter(merchantAdapter)
+        merchantInput.threshold = 1
+        merchantInput.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) merchantInput.showDropDown()
         }
     }
 
@@ -166,6 +166,13 @@ class MainActivity : AppCompatActivity() {
             Log.e("MerchantLoadError", "Error loading merchants: ${e.message}")
             emptyList()
         }
+    }
+
+    private fun clearInputs() {
+        amountInput.setText("")
+        merchantInput.setText("")
+        descriptionInput.setText("")
+        categorySpinner.setSelection(0)
     }
 
     private fun showToast(message: String) {

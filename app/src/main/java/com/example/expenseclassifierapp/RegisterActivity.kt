@@ -23,6 +23,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var loginRedirectText: TextView
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -46,7 +47,8 @@ class RegisterActivity : AppCompatActivity() {
         passwordInput = findViewById(R.id.passwordInput)
         registerButton = findViewById(R.id.registerButton)
         progressBar = findViewById(R.id.progressBar)
-        loginRedirectText = findViewById(R.id.loginRedirectText)
+        loginRedirectText = findViewById(R.id.loginRedirect)
+
 
         // 🔄 Handle registration
         registerButton.setOnClickListener {
