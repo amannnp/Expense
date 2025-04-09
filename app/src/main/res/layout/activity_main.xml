@@ -77,6 +77,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:hint="Enter Merchant Name"
+                app:hintEnabled="true"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/amountLayout">
@@ -85,17 +86,13 @@
                     android:id="@+id/merchantInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="?android:attr/editTextBackground"
-                    android:dropDownHeight="wrap_content"
-                    android:dropDownHorizontalOffset="0dp"
-                    android:dropDownVerticalOffset="8dp"
-                    android:importantForAutofill="no"
                     android:inputType="text"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="12dp"
                     android:textColor="@android:color/black"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:paddingVertical="12dp"
+                    android:paddingHorizontal="14dp" />
             </com.google.android.material.textfield.TextInputLayout>
+
 
             <!-- Description -->
             <com.google.android.material.textfield.TextInputLayout

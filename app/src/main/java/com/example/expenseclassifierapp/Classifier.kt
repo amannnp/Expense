@@ -1,6 +1,7 @@
 package com.example.expenseclassifierapp
 
 import android.content.Context
+import android.util.Log
 import org.tensorflow.lite.Interpreter
 import org.json.JSONArray
 import org.json.JSONObject
@@ -18,7 +19,7 @@ class Classifier(private val context: Context) {
         private const val MODEL_FILE = "expense_model.tflite"
         private const val VOCAB_FILE = "tfidf_vocab.json"
         private const val LABELS_FILE = "label_classes.json"
-        private const val TEXT_VECTOR_LENGTH = 70 // Must match model input
+        private const val TEXT_VECTOR_LENGTH = 100 // Matches tfidf_vocab size
     }
 
     init {
@@ -28,45 +29,55 @@ class Classifier(private val context: Context) {
     }
 
     fun classify(text: String, amount: Float): String {
-        val tfidfInput = textToTfidfVector(text)
-        val amountInput = arrayOf(floatArrayOf(amount))
+        val tfidfVector = textToTfidfVector(text)
 
-        val inputs = arrayOf(tfidfInput, amountInput)
-        val output = Array(1) { FloatArray(labels.size) }
+        if (tfidfVector.all { it == 0f }) {
+            Log.w("Classifier", "TF-IDF vector is all zeros — unknown text?")
+            return "Unknown"
+        }
 
-        interpreter.runForMultipleInputsOutputs(inputs, mapOf(0 to output))
-        val predictionIndex = output[0].indices.maxByOrNull { output[0][it] } ?: -1
-        return labels[predictionIndex]
+        val input1 = Array(1) { tfidfVector }         // shape: [1][100]
+        val input2 = Array(1) { floatArrayOf(amount) } // shape: [1][1]
+        val output = mutableMapOf<Int, Any>(0 to Array(1) { FloatArray(labels.size) })
+
+        return try {
+            interpreter.runForMultipleInputsOutputs(arrayOf(input1, input2), output)
+            val predictions = output[0] as Array<FloatArray>
+            val predictionIndex = predictions[0].indices.maxByOrNull { predictions[0][it] } ?: -1
+            labels.getOrElse(predictionIndex) { "Unknown" }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            "Prediction failed"
+        }
     }
 
     fun getLabels(): List<String> {
         return labels
     }
 
-    private fun textToTfidfVector(text: String): Array<FloatArray> {
+    private fun textToTfidfVector(text: String): FloatArray {
         val vector = FloatArray(TEXT_VECTOR_LENGTH)
         val tokens = text.lowercase().split(Regex("\\s+"))
         val tokenCounts = tokens.groupingBy { it }.eachCount()
 
-        var i = 0
         for ((token, count) in tokenCounts) {
             val index = tfidfVocab[token]
-            if (index != null && index < TEXT_VECTOR_LENGTH) {
+            if (index != null && index in vector.indices) {
                 vector[index] = count.toFloat()
-                i++
-                if (i >= TEXT_VECTOR_LENGTH) break
             }
         }
-        return arrayOf(vector)
+        return vector
     }
 
     private fun loadModelFile(filename: String): MappedByteBuffer {
         val fileDescriptor = context.assets.openFd(filename)
         val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
         val fileChannel = inputStream.channel
-        val startOffset = fileDescriptor.startOffset
-        val declaredLength = fileDescriptor.declaredLength
-        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
+        return fileChannel.map(
+            FileChannel.MapMode.READ_ONLY,
+            fileDescriptor.startOffset,
+            fileDescriptor.declaredLength
+        )
     }
 
     private fun loadVocabulary(filename: String): Map<String, Int> {
