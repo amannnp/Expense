@@ -7,4 +7,6 @@
 <string name="save_expense">Save Expense</string>
 <string name="expenses">Expenses:</string>
 <string name="expenses_list_description">Expenses list</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>

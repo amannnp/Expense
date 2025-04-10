@@ -16,12 +16,24 @@
         android:theme="@style/Theme.ExpenseClassifierApp"
         tools:targetApi="31">
 
+        <!-- FileProvider for exporting CSV -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.expenseclassifierapp.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <!-- LoginActivity is the launcher -->
         <activity
             android:name="com.example.expenseclassifierapp.LoginActivity"
             android:exported="true"
             android:label="Login"
             android:theme="@style/Theme.ExpenseClassifierApp">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -48,5 +60,8 @@
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.ExpenseClassifierApp" />
+
+        <activity android:name=".AboutActivity" />
+
     </application>
 </manifest>

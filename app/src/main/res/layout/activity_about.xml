@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_background">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/topAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="?attr/colorPrimary"
+        android:title="About App"
+        android:titleTextColor="@android:color/white"
+        app:navigationIcon="@android:drawable/ic_menu_revert"
+ />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@drawable/logo"
+                android:contentDescription="App Logo"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:lineSpacingExtra="6dp"
+                android:textColor="@android:color/black"
+                android:text="AutoExpense is an AI-powered expense tracking app that helps you categorize your spending automatically using smart machine learning models. It works offline, respects your privacy, and gives you insights through clean visual trends. \n\nBuilt for simplicity and accuracy, AutoExpense reduces the hassle of manual expense management by predicting categories from descriptions and merchants. With integration to Firebase, your data stays safely backed up and available across devices.\n\nDeveloped with love using Android, Kotlin, ONNX, TensorFlow Lite, and Firebase." />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

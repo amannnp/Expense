@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <ImageView
+            android:id="@+id/logoImageView"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/logo"
+            android:contentDescription="App Logo"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/aboutTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:lineSpacingExtra="6dp"
+            android:textColor="@android:color/black"
+            android:text="AutoExpense is an AI-powered expense tracking app that helps you classify your spending automatically using offline machine learning models.\n\n This project was developed as a Minor Project for 6th Semester under Prof. Jayanti Dansana. Many features are yet to implement in coming time. \n\nYou can enter expenses manually, let the app predict categories, and visualize spending trends. It also supports exporting to CSV and syncing with Firebase securely.\n\nThis app was built using Kotlin, ONNX Runtime, TensorFlow Lite, and Firebase.\n\nMade with simplicity and privacy." />
+    </LinearLayout>
+</ScrollView>
