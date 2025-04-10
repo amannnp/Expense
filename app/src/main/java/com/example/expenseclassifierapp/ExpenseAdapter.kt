@@ -5,18 +5,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
 
-class ExpenseAdapter(
-    private val expenses: MutableList<Expense>
-) : RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder>() {
-
-    inner class ExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val amountTextView: TextView = itemView.findViewById(R.id.amountTextView)
-        val categoryTextView: TextView = itemView.findViewById(R.id.categoryTextView)
-        val timestampTextView: TextView = itemView.findViewById(R.id.timestampTextView)
-    }
+class ExpenseAdapter(private val expenseList: List<Expense>) :
+    RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExpenseViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -25,28 +19,26 @@ class ExpenseAdapter(
     }
 
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
-        val expense = expenses[position]
-        holder.amountTextView.text = "₹${expense.amount}"
-        holder.categoryTextView.text = expense.category
-
-        val timestampText = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
-            .format(expense.timestamp.toDate())
-
-        holder.timestampTextView.text = timestampText
+        val expense = expenseList[position]
+        holder.bind(expense)
     }
 
-    override fun getItemCount(): Int = expenses.size
+    override fun getItemCount(): Int = expenseList.size
 
-    fun removeExpense(expense: Expense) {
-        val index = expenses.indexOfFirst { it.documentId == expense.documentId }
-        if (index != -1) {
-            expenses.removeAt(index)
-            notifyItemRemoved(index)
+    inner class ExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val amountTextView: TextView = itemView.findViewById(R.id.amountTextView)
+        private val categoryTextView: TextView = itemView.findViewById(R.id.categoryTextView)
+        private val timestampTextView: TextView = itemView.findViewById(R.id.timestampTextView)
+
+        fun bind(expense: Expense) {
+            amountTextView.text = "₹%.2f".format(expense.amount)
+            categoryTextView.text = expense.category
+            timestampTextView.text = formatTimestamp(expense.timestamp)
         }
-    }
 
-    fun addExpense(expense: Expense) {
-        expenses.add(0, expense)
-        notifyItemInserted(0)
+        private fun formatTimestamp(timestamp: Timestamp): String {
+            val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+            return sdf.format(timestamp.toDate())
+        }
     }
 }

@@ -1,8 +1,5 @@
 package com.example.expenseclassifierapp
 
-import java.io.File
-import androidx.core.content.FileProvider
-
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -14,6 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.content.FileProvider
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,6 +24,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import java.io.File
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -82,7 +81,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         expenseRecyclerView.adapter = adapter
 
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
+            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder) = false
+
             override fun onSwiped(vh: RecyclerView.ViewHolder, direction: Int) {
                 val pos = vh.adapterPosition
                 val toDelete = expenses[pos]
@@ -169,9 +169,18 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 for (doc in documents) {
                     val amount = doc.getDouble("amount") ?: 0.0
                     val category = doc.getString("category") ?: "Other"
+                    val merchant = doc.getString("merchant") ?: ""
+                    val description = doc.getString("description") ?: ""
                     val timestamp = (doc["timestamp"] as? Timestamp) ?: Timestamp.now()
-                    val id = doc.id
-                    expenses.add(0, Expense(amount, category, timestamp, id))
+                    val expense = Expense(
+                        amount = amount,
+                        category = category,
+                        timestamp = timestamp,
+                        documentId = doc.id,
+                        merchant = merchant,
+                        description = description
+                    )
+                    expenses.add(expense)
                 }
                 adapter.notifyDataSetChanged()
             }
@@ -213,7 +222,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         FirebaseFirestore.getInstance().collection("expenses")
             .add(data)
             .addOnSuccessListener {
-                expenses.add(0, Expense(amount, category, Timestamp.now(), it.id))
+                expenses.add(0, Expense(amount, category, Timestamp.now(), it.id, merchant, desc))
                 adapter.notifyItemInserted(0)
                 expenseRecyclerView.scrollToPosition(0)
                 clearInputs()
@@ -227,7 +236,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, merchants)
         merchantInput.setAdapter(adapter)
         merchantInput.threshold = 1
-        merchantInput.setOnFocusChangeListener { _, focus -> if (focus) merchantInput.showDropDown() }
+        merchantInput.setOnFocusChangeListener { _, focused -> if (focused) merchantInput.showDropDown() }
     }
 
     private fun loadMerchantsFromAssets(): List<String> {
@@ -265,7 +274,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val content = buildString {
             append("amount,category,timestamp\n")
             expenses.forEach {
-                append("${it.amount},${it.category},${it.timestamp.toDate()}\n")
+                val safeCategory = it.category.replace("\"", "\"\"")
+                append("${it.amount},\"$safeCategory\",\"${it.timestamp.toDate()}\"\n")
             }
         }
 
