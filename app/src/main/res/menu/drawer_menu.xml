@@ -10,6 +10,18 @@
         android:icon="@drawable/ic_budget"
         android:title="Budget Tracking" />
 
+
+    <item
+        android:id="@+id/nav_ocr"
+        android:title="Scan Receipt (OCR)"
+        android:icon="@drawable/ic_camera_alt" />
+
+    <item
+        android:id="@+id/nav_delete_all"
+        android:icon="@drawable/ic_budget"
+        android:title="Delete All Data" />
+
+
     <item
         android:id="@+id/nav_export"
         android:icon="@drawable/ic_export"

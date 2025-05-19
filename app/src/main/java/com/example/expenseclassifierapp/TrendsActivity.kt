@@ -1,4 +1,5 @@
 package com.example.expenseclassifierapp
+
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import android.os.Bundle
 import android.view.View
@@ -9,7 +10,6 @@ import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.utils.ColorTemplate
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
@@ -46,7 +46,21 @@ class TrendsActivity : AppCompatActivity() {
                 val expenses = result.documents.mapNotNull { doc ->
                     val category = doc.getString("category")
                     val amount = doc.getDouble("amount")
-                    val timestamp = doc.getTimestamp("timestamp")?.toDate()
+
+                    val timestamp: Date? = when (val rawTimestamp = doc.get("timestamp")) {
+                        is com.google.firebase.Timestamp -> rawTimestamp.toDate()
+                        is Long -> Date(rawTimestamp)
+                        is String -> {
+                            try {
+                                val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                                sdf.timeZone = TimeZone.getTimeZone("UTC")
+                                sdf.parse(rawTimestamp)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        else -> null
+                    }
 
                     if (category != null && amount != null && timestamp != null)
                         Triple(category, amount, timestamp)

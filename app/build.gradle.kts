@@ -71,8 +71,14 @@ dependencies {
     implementation("org.tensorflow:tensorflow-lite:2.14.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.3")
     implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    // CameraX
+    implementation("androidx.camera:camera-core:1.3.1")
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation("androidx.camera:camera-lifecycle:1.3.1")
+    implementation("androidx.camera:camera-view:1.3.1")
+    implementation("androidx.camera:camera-extensions:1.3.1")
 
-
-
-
+// ML Kit for Text Recognition
+    implementation("com.google.mlkit:text-recognition:16.0.0")
+    implementation ("com.google.mlkit:text-recognition:16.0.0")
 }

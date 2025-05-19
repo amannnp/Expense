@@ -1,5 +1,5 @@
 package com.example.expenseclassifierapp
-
+import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -144,6 +144,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.nav_trends -> startActivity(Intent(this, TrendsActivity::class.java))
+            R.id.nav_budget -> startActivity(Intent(this, BudgetTrackingActivity::class.java))
+            R.id.nav_ocr -> startActivity(Intent(this, OcrCameraActivity::class.java))
             R.id.nav_export -> exportExpensesToCSV()
             R.id.nav_about -> showAboutDialog()
             R.id.nav_logout -> {
@@ -151,9 +153,59 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 startActivity(Intent(this, LoginActivity::class.java))
                 finish()
             }
+            R.id.nav_delete_all -> {
+                showDeleteAllConfirmationDialog()
+            }
         }
         drawerLayout.closeDrawers()
         return true
+    }
+
+    private fun showDeleteAllConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Delete All Data")
+            .setMessage("Are you sure you want to permanently delete all your expenses?")
+            .setPositiveButton("Yes") { _, _ ->
+                deleteAllExpenses()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun deleteAllExpenses() {
+        val userId = auth.currentUser?.uid ?: return showToast("Not signed in")
+
+        // Create loading spinner
+        val progressDialog = ProgressDialog(this).apply {
+            setMessage("Deleting all expenses...")
+            setCancelable(false)
+            show()
+        }
+
+        FirebaseFirestore.getInstance().collection("expenses")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { result ->
+                val batch = FirebaseFirestore.getInstance().batch()
+                for (doc in result) {
+                    batch.delete(doc.reference)
+                }
+                batch.commit()
+                    .addOnSuccessListener {
+                        progressDialog.dismiss()
+                        expenses.clear()
+                        adapter.notifyDataSetChanged()
+                        showToast("All expenses deleted")
+                    }
+                    .addOnFailureListener {
+                        progressDialog.dismiss()
+                        showToast("Failed to delete all: ${it.message}")
+                    }
+            }
+            .addOnFailureListener {
+                progressDialog.dismiss()
+                showToast("Error loading expenses: ${it.message}")
+            }
     }
 
     private fun loadExpenses() {

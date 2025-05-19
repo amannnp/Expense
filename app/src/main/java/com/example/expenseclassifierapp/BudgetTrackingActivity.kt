@@ -62,4 +62,5 @@ class BudgetTrackingActivity : AppCompatActivity() {
                 recyclerView.adapter = BudgetAdapter(categoryTotals, budgetLimits)
             }
     }
+
 }
