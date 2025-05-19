@@ -36,7 +36,7 @@
         <activity
             android:name="com.example.expenseclassifierapp.LoginActivity"
             android:exported="true"
-            android:label="Login"
+            android:label="AutoExpense"
             android:theme="@style/Theme.ExpenseClassifierApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -81,6 +81,13 @@
             android:name="com.example.expenseclassifierapp.OcrResultActivity"
             android:exported="true"
             android:label="Extracted Text"
+            android:theme="@style/Theme.ExpenseClassifierApp" />
+
+        <!-- Budget Tracking Activity (added by you) -->
+        <activity
+            android:name="com.example.expenseclassifierapp.BudgetTrackingActivity"
+            android:exported="true"
+            android:label="Budget Tracking"
             android:theme="@style/Theme.ExpenseClassifierApp" />
 
     </application>
